@@ -19,7 +19,7 @@ for market in markets_data['markets']:
     print(market)
     print(f"- {market['ticker']}: {market['title']}")
     print(f"  Event: {market['event_ticker']}")
-    print(f"  Yes Price: {market['yes_price']}¢ | Volume: {market['volume']}")
+    print(f"  No Price: {(market['no_ask_dollars'])}¢ | Volume: {market['volume']}")
     print()
 
 # Get details for a specific event if you have its ticker
