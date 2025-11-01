@@ -155,7 +155,7 @@ if market_list:
 
 json_data_list = [m.to_dict() for m in market_list]
 next_cursor
-output_filename = "data.json"
+output_filename = "data2.json"
 
 with open(output_filename, "w") as f:
     json.dump(json_data_list, f, indent=4)
