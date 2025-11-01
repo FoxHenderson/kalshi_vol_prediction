@@ -13,7 +13,7 @@ params = {
     "limit": 100
 }
 
-"""ticker, title, CATEGORY, YES PRICE, NO PRICE, VOLUME, TIME TO EXPIRATION, CLOSE EARLY?, OPEN INTEREST"""
+"""ticker, title, CATEGORY, TIME TO EXPIRATION, CLOSE EARLY?, FINAL_VOLUME"""
 
 
 
@@ -22,11 +22,12 @@ class Market:
     def __init__(self, market):
 
         ticker_str = market.get("ticker")
-        close_time_str = market.get("close_time").split(".")[0]
-        open_time_str = market.get("open_time").split(".")[0]
+        self.close_time = market.get("close_time").split(".")[0]
+        self.open_time = market.get("open_time").split(".")[0]
         self.settlement_price = market.get("settlement_value")
         self.title = market.get("title", "N/A")
         self.volume = market.get("volume")
+        self.can_close_early = market.get("can_close_early")
 
         #print ("close", close_time_str.rstrip('Z'))
         #print("open", open_time_str.rstrip('Z'))
@@ -38,6 +39,10 @@ class Market:
         open_time_dt = datetime.strptime(open_time_str.rstrip('Z'), DATE_FORMAT)
         self.open_time = open_time_dt.timestamp()
         
+
+        self.duration = self.close_time-self.open_time
+
+
         self.settlement_price = market.get("settlement_price", None)
         
         self.title = market.get("title", "N/A")
