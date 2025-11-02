@@ -1,0 +1,23 @@
+[
+    {
+        "title": "Will the Lakers win the NBA Championship?",
+        "duration": 86400,
+        "can_close_early": true,
+        "category": "Sports",
+        "frequency": "yearly"
+    },
+    {
+        "title": "Will Bitcoin exceed $100k by end of year?",
+        "duration": 172800,
+        "can_close_early": false,
+        "category": "Crypto",
+        "frequency": "one-off"
+    },
+    {
+        "title": "Will it rain tomorrow in New York City?",
+        "duration": 259200,
+        "can_close_early": true,
+        "category": "Weather and Climate",
+        "frequency": "daily"
+    }
+]
