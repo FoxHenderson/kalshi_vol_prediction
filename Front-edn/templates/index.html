@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Predicting Popular Predictions 🔮</title>
+    <link rel="stylesheet" type="text/css" 
+        href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Predicting Popular Predictions</h1>
+    <p></p>
+    
+    <div class="container">
+        <div class="crystal-ball-container">
+            <img src="{{ url_for('static', filename='images/ball.gif') }}" alt="Crystal Ball" class="crystal-ball-image">  
+        </div>
+       <div class="prediction">Enter a Title Below...</div>
+
+        <div class="input-area">
+            <input id="topic" placeholder="How predicted is your prediction" autocomplete="off">
+            <button id="ask">Ask the Ball</button>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById("ask").addEventListener("click", async () => {
+        const inputElement = document.getElementById("topic");
+        const topic = inputElement.value;
+        // Select the new .prediction div for output
+        const predictionElement = document.querySelector(".prediction"); 
+
+        // 1. Functional Check: Prevent empty submissions
+        if (!topic.trim()) {
+            predictionElement.innerHTML = "Please provide a prediction title first!";
+            return; 
+        }
+        
+        // Clear input and display temporary message
+        inputElement.value = "";
+        predictionElement.innerHTML = "Consulting the Gemini...";
+
+        // Optional: Add a class for a visual effect (like fade-in)
+        predictionElement.classList.remove("new-result");
+
+        try {
+            const res = await fetch("/predict", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: "topic=" + encodeURIComponent(topic)
+            });
+            
+            if (!res.ok) {
+                // If Flask returns an error status (e.g., 500)
+                throw new Error(`Server error: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            
+            // --- CRITICAL FIX: Handle Redirection via Client-Side JavaScript ---
+            if (data.redirect_url) {
+                // If the server provides a URL, navigate the browser directly
+                window.location.href = data.redirect_url;
+            } else if (data.result) {
+                // If the server sends a result (likely an error message), display it
+                predictionElement.innerHTML = data.result; 
+                predictionElement.classList.add("new-result");
+            } else {
+                predictionElement.innerHTML = "Error: Received an unexpected response from the server.";
+            }
+            // --- END CRITICAL FIX ---
+
+        } catch (error) {
+            console.error("Prediction failed:", error);
+            predictionElement.innerHTML = "Error: Cannot connect to the cosmos.";
+        }
+    });
+</script>
+</body>
+</html>

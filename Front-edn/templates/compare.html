@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9-Event Comparison Grid for Event ID: {{ main_event.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+</head>
+<body>
+    <h1>9-Event Comparison for Event #{{ main_event.id }}</h1>
+    
+    <p style="text-align: center; margin-bottom: 30px;">
+        The event you specified (ID: **{{ main_event.id }}**) is located in the **center** of the grid.
+    </p>
+
+    <div class="comparison-grid-3x3">
+        
+        {# Helper macro to render the event details consistently #}
+        {% macro render_event(event, title, is_main=false) %}
+            <div class="event-column {% if is_main %}main-event-cell{% endif %}">
+                <div class="event-title">{{ title }}</div>
+                {% if event %}
+                    <p><strong>Title:</strong> {{ event.title }}</p>
+                    <p><strong>Category:</strong> {{ event.category }}</p>
+                    <p class="bigtext"><strong>Value of Market:</strong> £{{ event.final_volume }}</p>
+                    </p>
+                {% else %}
+                    <p>No event data available for this position.</p>
+                {% endif %}
+            </div>
+        {% endmacro %}
+
+        {# 
+           You will need to pass a list of events to your template. 
+           For this dynamic rendering, I'm assuming a list named 'comparison_events' 
+           that contains all 8 similar events, and you will place them correctly 
+           around the 'main_event'.
+           
+           A simpler approach, which I'll use, is to assume a list of 9 events 
+           called 'all_events' where the 5th item (index 4) is the main_event. 
+        #}
+
+        {% for event in all_events %}
+            {# Check if the current event is the 5th item (index 4) in the list (the center of the 3x3 grid) #}
+            {% if loop.index == 5 %}
+                {{ render_event(event, "Your New Prediction", is_main=true) }}
+            {% else %}
+                {{ render_event(event, "Similar Event " ~ loop.index) }}
+            {% endif %}
+        {% endfor %}
+
+    </div>
+</body>
+</html>

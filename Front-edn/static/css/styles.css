@@ -1,0 +1,162 @@
+body {
+  background-color: #282c34; /* Dark background */
+  color: #fff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+
+
+
+h1 {
+  text-align: center;
+  margin-top: 20px;
+  /* Changed to light color for visibility on dark background */
+  color: #f0f6fc;
+}
+.comparison-grid-3x3 {
+    display: grid;
+    /* Creates 3 columns of equal width */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px; /* Space between grid items */
+    padding: 20px;
+    max-width: 1200px; /* Optional: limit width for better readability */
+    margin: 0 auto;
+        }
+.event-column {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  text-align: center;
+  background-color: #ffffff;
+  /* CRITICAL FIX: Ensure all text inside the column is clearly visible */
+  color: #1a1a1a; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.main-event-cell {
+  border: 3px solid #007bff; /* Highlight for the central column */
+  background-color: #e0f0ff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transform: scale(1.02);
+  transition: transform 0.3s;
+}
+.event-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+.event-column p {
+  margin: 8px 0;
+  font-size: 0.95em;
+}
+.event-column strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.bigtext {
+    color: #d9534f; /* Example color for value */
+    font-weight: bold;
+    font-size: 1.8em;
+        }
+
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.crystal-ball-container {
+  position: relative; /* Essential for positioning the text inside */
+  width: 80%;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+/* 2. Style the image itself */
+.crystal-ball-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  /* Optional: Add a slight filter for magic look */
+  filter: drop-shadow(0 0 10px rgba(100, 150, 255, 0.7)); 
+}
+
+/* 3. Position the prediction text over the ball image */
+.prediction {
+  /* Position the text absolutely relative to the container */
+  position: absolute; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center perfectly */
+  
+  /* Ensure the text is readable and sits in the center */
+  z-index: 10;
+  font-size: 1.2em;
+  text-align: center;
+  padding: 20px;
+  color: #f0f0f0; 
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.8);
+  /* Make sure to keep your existing 'new-result' and animation keyframes */
+}
+
+
+
+
+
+
+
+
+
+.prediction{
+  display:none;
+}
+
+.mist {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 70%);
+  animation: mist-move 10s infinite alternate;
+}
+
+
+#topic, #ask {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  height: 50px;
+}
+
+#topic {
+  width: 280px;
+  height: 50px;
+}
+
+#ask {
+  background-color: #55aaff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 20px;
+}
+
+#ask:hover {
+  background-color: #3d8bcd;
+}
+
+@keyframes mist-move {
+  from {
+      transform: translate(0, 0);
+  }
+  to {
+      transform: translate(10px, 10px);
+  }
+}

@@ -1,0 +1,100 @@
+import random
+import os
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, jsonify
+import json
+from google import genai
+from google.genai import types
+load_dotenv()
+
+app = Flask(__name__)
+
+try:
+    # Check if the API key is available in the environment variables
+    if not os.getenv("GEMINI_API_KEY"):
+        raise EnvironmentError("GEMINI_API_KEY is not set.")
+    
+    client = genai.Client()
+except Exception as e:
+    print(f"Error initializing Gemini client: {e}")
+    # If initialization fails, client remains None, triggering the error message in the predict function
+    client = None
+
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+# Route for the main page (serves index.html)
+@app.route("/predict", methods=["POST"])
+def predict():
+    topic = request.form.get("topic")
+
+    if not topic:
+        return jsonify
+
+
+    if client is None:
+        return jsonify({"result": "LLM client failed to initialize"})
+
+    output_schema = types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "category": types.Schema(type=types.Type.STRING, description="The main topic category (e.g., Technology, Culture, Economics)."),
+            "frequency": types.Schema(type=types.Type.STRING, description="A prediction of how often this topic will be discussed (e.g., Daily, Monthly, Annually)."),
+            "prediction_text": types.Schema(type=types.Type.STRING, description="A creative, short prediction based on the topic, category, and frequency.")
+        },
+        required=["category", "frequency", "prediction_text"]
+    )
+    
+    # Define the tool (function) that uses the schema
+    prediction_tool = types.Tool(
+        function_declarations=[
+            types.FunctionDeclaration(
+                name='output_formatter',
+                description='Formats the prediction into a structured JSON object.',
+                parameters=output_schema
+            )
+        ]
+    )
+
+
+    try:
+
+        response = client.models.generate_content(
+            model = "gemini-2.5-flash",
+            contents = [
+                {"role": "user", "parts": [
+                    types.Part.from_text("The user has provided a **TITLE** of an event. Your task is to analyze this title and predict the **Category** that it best fits in (from the list ['financials', 'crypto', 'sports', 'mentions', 'world', 'entertainment', 'social', 'climate and weather']) and the **Frequency** (how often this sort of event takes place) "),
+                    types.Part.from_text(f"Analyze this prediction title: '{topic}'")
+                ]}
+            ],
+            config=types.GenerateContentConfig(
+                tools = [prediction_tool],
+                tool_choice = types.ToolChoice(function = {'name': 'output_formatter'})
+            )
+        )
+
+
+
+        function_call = response.function_calls[0]
+
+        llm_data = json.loads(function_call.args['category'].model_dump_json())
+
+        final_prediction = (
+            f"**TITLE:** {topic}<br>"
+            f"**CATEGORY:** {llm_data['category']}<br>"
+            f"**FREQUENCY:** {llm_data['frequency']}<br>"
+        )
+        return jsonify({"result": final_prediction})
+    except Exception as e:
+        print(f"Gemini Prediction Error: {e}")
+        return jsonify ({"result": "Title too complex"})
+
+ 
+if __name__ == "__main__":
+    # Ensure this file runs and starts the server
+    # The port number (e.g., 5000) will show in your terminal
+    app.run(debug=True)
