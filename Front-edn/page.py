@@ -44,7 +44,14 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    print("START PREDICT")
     topic = request.form.get("topic")
+    print("TOPIC", topic)
+    duration = request.form.get("duration")   
+
+
+    print("TOPIC", topic, "DURATION", duration)
+
 
     if not topic:
         return jsonify({"result": "Please provide a prediction title."}) 
@@ -58,9 +65,10 @@ def predict():
         properties={
             "category": types.Schema(type=types.Type.STRING, description="The main topic category (e.g., Technology, Culture, Economics)."),
             "frequency": types.Schema(type=types.Type.STRING, description="A prediction of how often this topic will be discussed (e.g., Daily, Monthly, Annually)."),
+            "can_end_early": types.Schema(type=types.Type.BOOLEAN, description="Determines whether the event can come true at any point in time rather than having to wait till the end of its time")
         },
         # Ensure prediction_text is expected, which guides the model to include it
-        required=["category", "frequency"] 
+        required=["category", "frequency", "can_end_early"] 
     )
     
     # --- New Combined Prompt ---
@@ -69,7 +77,10 @@ def predict():
         "Analyze this title and output a suitable **Category** (from the exact list: "
         "['financials', 'crypto', 'sports', 'mentions', 'world', 'entertainment', 'social', 'climate and weather']), "
         "and the **Frequency** this type of event occurs (e.g., 'Yearly' for a league winner, 'Daily' for breaking news). "
-        "Also provide a short, creative **Prediction Text** about the event. "
+        "Options for  **Frequency** are: ['Daily', 'one_off', 'weekly', 'hourly', 'custom'] so only these values can be used for **Frequency**"
+        "Also provide a boolean (True or False) value for **can_end_early**. This is dependant on whether the event can come true at anytime during"
+        " the bid period. For example, if the bid is that it is going to rain in the next week, as soon as it rains, the bid is over so you set can_end_early to True, whereas if it "
+        "were a bid on a team winning a football match, the bid is only won at the end of the match so you would set it to False"
         "Generate a JSON object that strictly conforms to the provided schema.\n\n"
         f"Analyze this prediction title: '{topic}'"
     )
@@ -120,16 +131,23 @@ def predict():
         
         new_id = generate_six_digit_id()
         # Generate a random volume score (required by the existing compare_events logic)
-        random_volume = generate_six_digit_id()
-        
+        category = llm_data["category"]
+        frequency = llm_data["frequency"]
+        can_close_early = llm_data.get("can_end_early", False)
+
+        print("BOOLEAN:", can_close_early)
         new_event = {
-            "id": new_id, # Integer ID
+            "id": new_id,
             "title": topic,
-            "category": llm_data["category"],
-            "frequency": llm_data["frequency"],
-            "final_volume": random_volume, 
-            "is_dynamic": True
+            "category":category,
+            "frequency": frequency,
+            "duration": duration,
+            "can_close_early": can_close_early
         }
+
+        interpolated_volume = generate_six_digit_id()
+        
+        new_event["final_volume"] = interpolated_volume
         
         # Store the new event data temporarily using the integer ID as the key
         temp_predictions[new_id] = new_event

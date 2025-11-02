@@ -1,37 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Predicting Popular Predictions 🔮</title>
+    <!-- Assuming your styles.css includes the necessary styles, including for the new radio buttons -->
     <link rel="stylesheet" type="text/css" 
         href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <h1>Predicting Popular Predictions</h1>
     <p></p>
     
-    <div class="container">
+    <!-- 🌟 ACTION: LISTENER MOVED TO FORM SUBMIT 🌟 -->
+    <form id="prediction-form" class="container"> 
         <div class="crystal-ball-container">
-            <img src="{{ url_for('static', filename='images/ball.gif') }}" alt="Crystal Ball" class="crystal-ball-image">  
+            <img id="crystal-ball-image" 
+                 src="{{ url_for('static', filename='images/ball.png') }}" 
+                 alt="Crystal Ball" 
+                 class="crystal-ball-image">  
         </div>
-       <div class="prediction">Enter a Title Below...</div>
-
+        <div class="prediction">Enter a Title Below...</div>
+        
         <div class="input-area">
-            <input id="topic" placeholder="How predicted is your prediction" autocomplete="off">
-            <button id="ask">Ask the Ball</button>
+            <!-- IMPORTANT: Name attribute is necessary for FormData to pick this up -->
+            <input id="topic" name="topic" placeholder="How predicted is your prediction" autocomplete="off">
+            
+            <div class="duration-selector">
+                <label>Duration of Bid:</label>
+                <div class="radio-group">
+                    <input type="radio" id="duration_day" name="duration" value="1 day" checked>
+                    <label for="duration_day">1 Day</label>
+                    
+                    <input type="radio" id="duration_week" name="duration" value="1 week">
+                    <label for="duration_week">1 Week</label>
+
+                    <input type="radio" id="duration_month" name="duration" value="1 month">
+                    <label for="duration_month">1 Month</label>
+
+                    <input type="radio" id="duration_year" name="duration" value="1 year">
+                    <label for="duration_year">1 Year</label>
+                </div>
+            </div>
+
+            <!-- The button's ID is no longer used for the event listener, but remains as the submit trigger -->
+            <button id="ask" type="submit">Find Out</button>
         </div>
-    </div>
+    </form>
 
     <script>
-    document.getElementById("ask").addEventListener("click", async () => {
-        const inputElement = document.getElementById("topic");
-        const topic = inputElement.value;
-        // Select the new .prediction div for output
-        const predictionElement = document.querySelector(".prediction"); 
+    // --- NEW VALIDATION FUNCTION ---
+    function isValidTopic(topic) {
+        if (topic.length < 5) return false;
+        const regex = /\w{3,}/; 
+        return regex.test(topic);
+    }
+    // -------------------------------
 
+    // 🌟 FIX: Attaching the listener to the form's 'submit' event
+    document.getElementById("prediction-form").addEventListener("submit", async (e) => {
+        // Prevent the browser's default action (page reload)
+        e.preventDefault(); 
+        
+        // Data extraction is now based on the form object
+        const formElement = document.getElementById('prediction-form');
+        const formData = new FormData(formElement);
+        const topic = formData.get('topic').trim(); // Get 'topic' directly from FormData
+        
+        const inputElement = document.getElementById("topic");
+        const predictionElement = document.querySelector(".prediction"); 
+        const ballImage = document.getElementById("crystal-ball-image");
+        
         // 1. Functional Check: Prevent empty submissions
-        if (!topic.trim()) {
+        if (!topic) {
             predictionElement.innerHTML = "Please provide a prediction title first!";
+            return; 
+        }
+
+        // 2. Input Validation Check
+        if (!isValidTopic(topic)) {
+            alert("Please enter a clear event title, not just gibberish or a very short word.");
+            predictionElement.innerHTML = "Enter a Title Below...";
+            inputElement.focus();
             return; 
         }
         
@@ -39,39 +89,48 @@
         inputElement.value = "";
         predictionElement.innerHTML = "Consulting the Gemini...";
 
-        // Optional: Add a class for a visual effect (like fade-in)
+        // ⚡️ START ANIMATION: Switch to GIF when loading starts
+        ballImage.src = "{{ url_for('static', filename='images/ball.gif') }}"; 
+        
         predictionElement.classList.remove("new-result");
+
+        // CRITICAL: Use URLSearchParams to safely build the body from the FormData
+        const requestBody = new URLSearchParams(formData).toString();
 
         try {
             const res = await fetch("/predict", {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body: "topic=" + encodeURIComponent(topic)
+                body: requestBody 
             });
             
             if (!res.ok) {
-                // If Flask returns an error status (e.g., 500)
                 throw new Error(`Server error: ${res.status}`);
             }
             
             const data = await res.json();
             
-            // --- CRITICAL FIX: Handle Redirection via Client-Side JavaScript ---
+            // --- Handle Redirection or Error Display ---
             if (data.redirect_url) {
-                // If the server provides a URL, navigate the browser directly
                 window.location.href = data.redirect_url;
             } else if (data.result) {
-                // If the server sends a result (likely an error message), display it
+                console.log("Server response (Error/Debug):", data.result); 
                 predictionElement.innerHTML = data.result; 
                 predictionElement.classList.add("new-result");
+                // 🛑 STOP ANIMATION
+                ballImage.src = "{{ url_for('static', filename='images/ball.png') }}";
             } else {
                 predictionElement.innerHTML = "Error: Received an unexpected response from the server.";
+                // 🛑 STOP ANIMATION
+                ballImage.src = "{{ url_for('static', filename='images/ball.png') }}";
             }
             // --- END CRITICAL FIX ---
 
         } catch (error) {
             console.error("Prediction failed:", error);
             predictionElement.innerHTML = "Error: Cannot connect to the cosmos.";
+            // 🛑 STOP ANIMATION
+            ballImage.src = "{{ url_for('static', filename='images/ball.png') }}";
         }
     });
 </script>

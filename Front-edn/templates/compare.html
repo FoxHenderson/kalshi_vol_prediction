@@ -8,11 +8,8 @@
 
 </head>
 <body>
-    <h1>9-Event Comparison for Event #{{ main_event.id }}</h1>
+    <h1>You asked: '{{ main_event.title }}' we think this is just as popular a prediction to make as the below circumstances</h1>
     
-    <p style="text-align: center; margin-bottom: 30px;">
-        The event you specified (ID: **{{ main_event.id }}**) is located in the **center** of the grid.
-    </p>
 
     <div class="comparison-grid-3x3">
         
@@ -50,6 +47,13 @@
             {% endif %}
         {% endfor %}
 
+    </div>
+
+
+    <div style="text-align: center; margin-top: 50px;">
+        <a href="{{ url_for('index') }}" class="back-button">
+            Go Back to Prediction Ball 🔮
+        </a>
     </div>
 </body>
 </html>
